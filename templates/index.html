@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AK - AI Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            width: 800px;
+            height: 90vh;
+            background: #16213e;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .chat-header {
+            background: #0f3460;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .chat-header span { color: #e94560; }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .user-message {
+            background: #e94560;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 3px;
+        }
+        .bot-message {
+            background: #0f3460;
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 3px;
+        }
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            gap: 10px;
+            background: #0f3460;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #16213e;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+        .chat-input button {
+            padding: 12px 25px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .chat-input button:hover { background: #c73652; }
+        .typing { color: #888; font-style: italic; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">🤖 <span>AK</span> — Your Personal AI Assistant</div>
+        <div class="chat-messages" id="messages">
+            <div class="message bot-message">👋 Hi! I'm <b>AK</b>, your personal AI assistant. How can I help you today?</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKey(event)"/>
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("userInput");
+            const messages = document.getElementById("messages");
+            const userText = input.value.trim();
+            if (!userText) return;
+
+            // Show user message
+            messages.innerHTML += `<div class="message user-message">${userText}</div>`;
+            input.value = "";
+
+            // Show typing indicator
+            messages.innerHTML += `<div class="message bot-message typing" id="typing">AK is typing...</div>`;
+            messages.scrollTop = messages.scrollHeight;
+
+            // Call Flask API
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userText })
+            });
+
+            const data = await response.json();
+
+            // Remove typing indicator
+            document.getElementById("typing").remove();
+
+            // Show AK reply
+            messages.innerHTML += `<div class="message bot-message">${data.reply}</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function handleKey(e) {
+            if (e.key === "Enter") sendMessage();
+        }
+    </script>
+</body>
+</html>
